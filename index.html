@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rewards - Sistema de Puntos</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="phone-frame">
+        <!-- Header -->
+        <div class="header">
+            <h1>Recompensas</h1>
+            <div class="profile-icon" onclick="mostrarPerfil()" title="Ver perfil">👤</div>
+        </div>
+
+        <!-- Tarjeta de Puntos Principal -->
+        <div class="points-card" onclick="mostrarDetallePuntos()">
+            <div class="points-label">PUNTOS DISPONIBLES</div>
+            <div class="points-amount" id="puntosActuales">12,450</div>
+            <div class="points-value" id="valorPuntos">≈ $5,000 CR</div>
+        </div>
+
+        <!-- Sección: Escanear Ticket -->
+        <div class="qr-section">
+            <div class="qr-title">📸 ¿COMPRASTE COMBUSTIBLE?</div>
+            <button class="scan-button" onclick="abrirScanner()">
+                <span>📷</span>
+                Escanear ticket
+            </button>
+            <div class="qr-note">Escanea el código QR de tu ticket para ganar puntos</div>
+        </div>
+
+        <!-- Sección: Canjeo Rápido - ACTUALIZADA -->
+        <div class="section-title">
+            <span>⚡ Canjeo Rápido</span>
+            <span class="view-all" onclick="verTodasRecompensas()">Ver todas →</span>
+        </div>
+        <div class="redeem-grid" id="recompensasGrid">
+            <div class="redeem-item" onclick="canjearProducto('producto1', 500)" id="itemProducto1">
+                <div class="redeem-icon">🧴</div>
+                <p>Producto 1</p>
+                <span>500 pts</span>
+            </div>
+            <div class="redeem-item" onclick="canjearProducto('producto2', 1000)" id="itemProducto2">
+                <div class="redeem-icon">🧢</div>
+                <p>Producto 2</p>
+                <span>1,000 pts</span>
+            </div>
+            <div class="redeem-item" onclick="canjearProducto('producto3', 2500)" id="itemProducto3">
+                <div class="redeem-icon">🧳</div>
+                <p>Producto 3</p>
+                <span>2,500 pts</span>
+            </div>
+            <div class="redeem-item" onclick="canjearProducto('producto4', 100000)" id="itemProducto4">
+                <div class="redeem-icon">🚗</div>
+                <p>Producto 4</p>
+                <span>100,000 pts</span>
+            </div>
+        </div>
+
+        <!-- Sección: Actividad Reciente -->
+        <div class="section-title">
+            <span>📋 Actividad reciente</span>
+            <span class="view-all" onclick="actualizarActividad()">↻ Actualizar</span>
+        </div>
+        <div class="activity-list" id="listaActividad"></div>
+
+        <!-- Botones de acción -->
+        <button class="redeem-button" onclick="abrirCanjeo()">Canjear puntos</button>
+        <button class="secondary-button" onclick="simularCompra()">⛽ Simular compra (prueba)</button>
+    </div>
+
+    <!-- MODAL: Escanear QR -->
+    <div class="modal-overlay" id="modalScan">
+        <div class="modal">
+            <h3>📷 Escanear ticket</h3>
+            <p>Ingresa el código QR que aparece en tu ticket</p>
+            <input type="text" class="modal-input" id="codigoQR" placeholder="Ej: GAS-1234-5678" value="GAS-1234-5678">
+            <div class="modal-buttons">
+                <button class="modal-button modal-cancel" onclick="cerrarModal('modalScan')">Cancelar</button>
+                <button class="modal-button modal-confirm" onclick="procesarQR()">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Canjear puntos - ACTUALIZADO -->
+    <div class="modal-overlay" id="modalCanjeo">
+        <div class="modal">
+            <h3>🎁 Canjear puntos</h3>
+            <p>Selecciona tu recompensa</p>
+            <select class="modal-input" id="selectRecompensa">
+                <option value="producto1">🧴 Producto 1 - 500 pts</option>
+                <option value="producto2">🧢 Producto 2 - 1,000 pts</option>
+                <option value="producto3">🧳 Producto 3 - 2,500 pts</option>
+                <option value="producto4">🚗 Producto 4 - 100,000 pts</option>
+            </select>
+            <div class="modal-buttons">
+                <button class="modal-button modal-cancel" onclick="cerrarModal('modalCanjeo')">Cancelar</button>
+                <button class="modal-button modal-confirm" onclick="procesarCanjeo()">Canjear</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Detalle de puntos -->
+    <div class="modal-overlay" id="modalDetalle">
+        <div class="modal">
+            <h3>💰 Tus puntos</h3>
+            <p style="font-size: 32px; font-weight: 700; color: #667eea;" id="modalPuntos">12,450</p>
+            <p>Valor aproximado: <span id="modalValor">$5,000 CR</span></p>
+            <p style="margin-top: 10px;">🎯 Próxima meta: Producto 1 (500 pts)</p>
+            <div class="progress-bar">
+                <div class="progress-fill" id="barraProgreso" style="width: 45%;"></div>
+            </div>
+            <button class="modal-button modal-confirm" onclick="cerrarModal('modalDetalle')" style="width: 100%;">Cerrar</button>
+        </div>
+    </div>
+
+    <!-- MODAL: Confirmación - ACTUALIZADO -->
+    <div class="modal-overlay" id="modalConfirmacion">
+        <div class="modal">
+            <h3>✅ ¡Éxito!</h3>
+            <p id="mensajeConfirmacion">Has canjeado tu recompensa</p>
+            <button class="modal-button modal-confirm" onclick="cerrarModal('modalConfirmacion')" style="width: 100%;">Aceptar</button>
+        </div>
+    </div>
+
+    <!-- Loader -->
+    <div class="loader" id="loader">
+        <div class="loader-spinner"></div>
+        <p>Procesando...</p>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast">Mensaje</div>
+
+    <script>
+        // ===== ESTADO DE LA APLICACIÓN =====
+        let puntos = 12450;
+        let moneda = "CR";
+        
+        let actividades = [
+            { icono: '📍', titulo: 'Compra en tienda X', fecha: 'Hoy, 10:42 AM', puntos: 120, tipo: 'positive' },
+            { icono: '🛒', titulo: 'Producto 1 canjeado', fecha: 'Ayer, 02:15 PM', puntos: -500, tipo: 'negative' },
+            { icono: '📚', titulo: 'Bonus semanal', fecha: '24 Oct, 09:00 AM', puntos: 50, tipo: 'positive' },
+            { icono: '⛽', titulo: 'Compra de combustible', fecha: '23 Oct, 06:30 PM', puntos: 85, tipo: 'positive' },
+            { icono: '🎁', titulo: 'Producto 2 canjeado', fecha: '20 Oct, 11:20 AM', puntos: -1000, tipo: 'negative' }
+        ];
+
+        // ===== FUNCIONES DE UTILIDAD =====
+        function mostrarToast(mensaje, tipo = 'info', duracion = 3000) {
+            const toast = document.getElementById('toast');
+            toast.textContent = mensaje;
+            toast.className = 'toast ' + tipo;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, duracion);
+        }
+
+        function mostrarLoader() {
+            document.getElementById('loader').style.display = 'flex';
+        }
+
+        function ocultarLoader() {
+            document.getElementById('loader').style.display = 'none';
+        }
+
+        function abrirModal(id) {
+            document.getElementById(id).style.display = 'flex';
+        }
+
+        function cerrarModal(id) {
+            document.getElementById(id).style.display = 'none';
+        }
+
+        function actualizarPuntos() {
+            document.getElementById('puntosActuales').textContent = puntos.toLocaleString();
+            const valorUSD = (puntos / 1000 * 5).toFixed(2);
+            document.getElementById('valorPuntos').textContent = `≈ $${valorUSD} ${moneda}`;
+            
+            // Actualizar modal de detalle
+            document.getElementById('modalPuntos').textContent = puntos.toLocaleString();
+            document.getElementById('modalValor').textContent = `≈ $${(puntos / 1000 * 5).toFixed(2)} ${moneda}`;
+            
+            // Calcular progreso hacia próxima meta (Producto 1: 500 pts)
+            const progreso = Math.min((puntos / 500) * 100, 100);
+            document.getElementById('barraProgreso').style.width = progreso + '%';
+            
+            // Deshabilitar opciones que no alcancen
+            document.getElementById('itemProducto1').classList.toggle('disabled', puntos < 500);
+            document.getElementById('itemProducto2').classList.toggle('disabled', puntos < 1000);
+            document.getElementById('itemProducto3').classList.toggle('disabled', puntos < 2500);
+            document.getElementById('itemProducto4').classList.toggle('disabled', puntos < 100000);
+        }
+
+        function renderizarActividades() {
+            const lista = document.getElementById('listaActividad');
+            lista.innerHTML = '';
+            
+            actividades.slice(0, 5).forEach(act => {
+                const item = document.createElement('div');
+                item.className = 'activity-item';
+                item.innerHTML = `
+                    <div class="activity-icon">${act.icono}</div>
+                    <div class="activity-details">
+                        <div class="activity-title">${act.titulo}</div>
+                        <div class="activity-meta">
+                            <span class="activity-date">${act.fecha}</span>
+                            <span class="activity-points ${act.tipo}">
+                                ${act.puntos > 0 ? '+' : ''}${act.puntos} pts
+                            </span>
+                        </div>
+                    </div>
+                `;
+                lista.appendChild(item);
+            });
+        }
+
+        function agregarActividad(titulo, puntosGanados, icono = '📌') {
+            const ahora = new Date();
+            const horas = ahora.getHours().toString().padStart(2, '0');
+            const minutos = ahora.getMinutes().toString().padStart(2, '0');
+            const fechaStr = `Hoy, ${horas}:${minutos}`;
+            
+            actividades.unshift({
+                icono: icono,
+                titulo: titulo,
+                fecha: fechaStr,
+                puntos: puntosGanados,
+                tipo: puntosGanados > 0 ? 'positive' : 'negative'
+            });
+            
+            renderizarActividades();
+        }
+
+        // ===== FUNCIONES PRINCIPALES =====
+        function mostrarPerfil() {
+            mostrarToast(`👤 Cliente: Juan Pérez · ${puntos} puntos disponibles`, 'info');
+        }
+
+        function mostrarDetallePuntos() {
+            abrirModal('modalDetalle');
+        }
+
+        function abrirScanner() {
+            abrirModal('modalScan');
+        }
+
+        function procesarQR() {
+            const codigo = document.getElementById('codigoQR').value;
+            
+            if (!codigo || codigo.length < 5) {
+                mostrarToast('❌ Código inválido', 'error');
+                return;
+            }
+
+            cerrarModal('modalScan');
+            mostrarLoader();
+
+            // Simular procesamiento
+            setTimeout(() => {
+                ocultarLoader();
+                
+                // Simular compra aleatoria
+                const monto = Math.floor(Math.random() * 60) + 20;
+                const litros = Math.floor(Math.random() * 40) + 10;
+                
+                let puntosGanados = Math.floor(monto / 10);
+                
+                if (litros >= 40) {
+                    puntosGanados += 5;
+                }
+                
+                const multiplicadores = [1, 1, 1, 2, 3];
+                const multi = multiplicadores[Math.floor(Math.random() * multiplicadores.length)];
+                puntosGanados = puntosGanados * multi;
+                
+                puntos += puntosGanados;
+                actualizarPuntos();
+                
+                let mensajeMulti = '';
+                if (multi > 1) mensajeMulti = ` ¡Promoción x${multi}!`;
+                
+                agregarActividad(`⛽ Compra en gasolinera $${monto} (${litros}L)`, puntosGanados, '⛽');
+                
+                mostrarToast(`✅ ¡Ganaste ${puntosGanados} puntos!${mensajeMulti}`, 'success');
+            }, 2000);
+        }
+
+        function canjearProducto(producto, costo) {
+            if (puntos < costo) {
+                mostrarToast(`❌ Necesitas ${costo - puntos} puntos más`, 'error');
+                return;
+            }
+
+            const nombres = {
+                producto1: 'Producto 1',
+                producto2: 'Producto 2',
+                producto3: 'Producto 3',
+                producto4: 'Producto 4'
+            };
+
+            const iconos = {
+                producto1: '🧴',
+                producto2: '🧢',
+                producto3: '🧳',
+                producto4: '🚗'
+            };
+
+            puntos -= costo;
+            actualizarPuntos();
+            
+            agregarActividad(`${iconos[producto]} ${nombres[producto]} canjeado`, -costo, iconos[producto]);
+            
+            document.getElementById('mensajeConfirmacion').textContent = `¡Canjeaste ${nombres[producto]} por ${costo} puntos!`;
+            abrirModal('modalConfirmacion');
+        }
+
+        function abrirCanjeo() {
+            abrirModal('modalCanjeo');
+        }
+
+        function procesarCanjeo() {
+            const select = document.getElementById('selectRecompensa');
+            const producto = select.value;
+            
+            const costos = {
+                producto1: 500,
+                producto2: 1000,
+                producto3: 2500,
+                producto4: 100000
+            };
+
+            cerrarModal('modalCanjeo');
+            canjearProducto(producto, costos[producto]);
+        }
+
+        function verTodasRecompensas() {
+            mostrarToast('🎁 Catálogo completo (próximamente)', 'info');
+        }
+
+        function actualizarActividad() {
+            mostrarLoader();
+            
+            setTimeout(() => {
+                ocultarLoader();
+                
+                const ahora = new Date();
+                const fechaRandom = `${ahora.getHours()}:${ahora.getMinutes()}`;
+                
+                actividades.unshift({
+                    icono: '🔄',
+                    titulo: 'Actividad actualizada',
+                    fecha: `Hoy, ${fechaRandom}`,
+                    puntos: 0,
+                    tipo: 'info'
+                });
+                
+                renderizarActividades();
+                mostrarToast('↻ Actividad actualizada', 'success');
+            }, 800);
+        }
+
+        function simularCompra() {
+            mostrarLoader();
+            
+            setTimeout(() => {
+                ocultarLoader();
+                
+                const monto = Math.floor(Math.random() * 80) + 20;
+                const litros = Math.floor(Math.random() * 50) + 10;
+                let puntosGanados = Math.floor(monto / 10);
+                
+                if (litros >= 40) puntosGanados += 5;
+                
+                puntos += puntosGanados;
+                actualizarPuntos();
+                
+                agregarActividad(`⛽ Compra simulada $${monto} (${litros}L)`, puntosGanados, '⛽');
+                
+                mostrarToast(`🎮 Simulación: +${puntosGanados} puntos`, 'success');
+            }, 1000);
+        }
+
+        // ===== INICIALIZACIÓN =====
+        document.addEventListener('DOMContentLoaded', () => {
+            actualizarPuntos();
+            renderizarActividades();
+            
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    cerrarModal('modalScan');
+                    cerrarModal('modalCanjeo');
+                    cerrarModal('modalDetalle');
+                    cerrarModal('modalConfirmacion');
+                }
+            });
+
+            window.addEventListener('click', (e) => {
+                if (e.target.classList.contains('modal-overlay')) {
+                    e.target.style.display = 'none';
+                }
+            });
+
+            mostrarToast('🚀 App lista! Escanea un ticket o prueba con "Simular compra"', 'info', 4000);
+        });
+    </script>
+</body>
+</html>
