@@ -3,22 +3,74 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rewards - Sistema de Puntos</title>
+    <title>Mi Gasolinera - Recompensas</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="phone-frame">
+    <!-- ===== PANTALLA DE LOGIN ===== -->
+    <div class="login-screen" id="loginScreen">
+        <div class="login-container">
+            <div class="login-icon">
+                <span>⛽</span>
+            </div>
+            <h2>La Managua</h2>
+            <p>Ingresá con tu número de cédula</p>
+            
+            <div class="input-group">
+                <label>Número de cédula</label>
+                <input type="text" id="cedulaInput" placeholder="Ej: 123456789" value="123456789" maxlength="20">
+                <div class="error-message" id="loginError">Cédula no encontrada</div>
+            </div>
+            
+            <label class="remember-checkbox">
+                <input type="checkbox" id="rememberUser" checked>
+                <span>Recordar mi usuario</span>
+            </label>
+            
+            <button class="login-button" id="loginButton" onclick="iniciarSesion()">
+                <span id="loginButtonText">Ingresar</span>
+            </button>
+            
+            <div class="demo-login">
+                <strong>📱 Usuarios de prueba:</strong>
+                <div>123456789 → Juan Pérez (12,450 pts)</div>
+                <div>987654321 → María García (8,200 pts)</div>
+                <div>555555555 → Carlos López (25,000 pts)</div>
+            </div>
+            
+            <div class="login-footer">
+                ¿Problemas para ingresar? <a href="#" onclick="mostrarAyudaLogin()">Contactanos</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== SPLASH SCREEN (se muestra después del login) ===== -->
+    <div class="splash-screen" id="splashScreen" style="display: none;">
+        <div class="splash-content">
+            <div class="splash-icon">⛽</div>
+            <h2>La Managua</h2>
+            <p id="welcomeMessage">Bienvenido</p>
+            <div class="splash-spinner"></div>
+        </div>
+    </div>
+
+    <!-- ===== APP PRINCIPAL (oculta hasta login) ===== -->
+    <div class="phone-frame" id="appContent" style="display: none;">
         <!-- Header -->
         <div class="header">
             <h1>Recompensas</h1>
-            <div class="profile-icon" onclick="mostrarPerfil()" title="Ver perfil">👤</div>
+            <div style="display: flex; align-items: center;">
+                <div class="theme-toggle" onclick="toggleTheme()">🌙</div>
+                <div class="profile-icon" onclick="mostrarPerfil()" title="Ver perfil" id="profileIcon">👤</div>
+                <button class="logout-button" onclick="cerrarSesion()" title="Cerrar sesión">✕</button>
+            </div>
         </div>
 
         <!-- Tarjeta de Puntos Principal -->
         <div class="points-card" onclick="mostrarDetallePuntos()">
             <div class="points-label">PUNTOS DISPONIBLES</div>
-            <div class="points-amount" id="puntosActuales">12,450</div>
-            <div class="points-value" id="valorPuntos">≈ $5,000 CR</div>
+            <div class="points-amount" id="puntosActuales">0</div>
+            <div class="points-value" id="valorPuntos">≈ $0 CR</div>
         </div>
 
         <!-- Sección: Escanear Ticket -->
@@ -31,7 +83,7 @@
             <div class="qr-note">Escanea el código QR de tu ticket para ganar puntos</div>
         </div>
 
-        <!-- Sección: Canjeo Rápido - ACTUALIZADA -->
+        <!-- Sección: Canjeo Rápido -->
         <div class="section-title">
             <span>⚡ Canjeo Rápido</span>
             <span class="view-all" onclick="verTodasRecompensas()">Ver todas →</span>
@@ -84,7 +136,7 @@
         </div>
     </div>
 
-    <!-- MODAL: Canjear puntos - ACTUALIZADO -->
+    <!-- MODAL: Canjear puntos -->
     <div class="modal-overlay" id="modalCanjeo">
         <div class="modal">
             <h3>🎁 Canjear puntos</h3>
@@ -106,22 +158,41 @@
     <div class="modal-overlay" id="modalDetalle">
         <div class="modal">
             <h3>💰 Tus puntos</h3>
-            <p style="font-size: 32px; font-weight: 700; color: #667eea;" id="modalPuntos">12,450</p>
-            <p>Valor aproximado: <span id="modalValor">$5,000 CR</span></p>
-            <p style="margin-top: 10px;">🎯 Próxima meta: Producto 1 (500 pts)</p>
+            <p style="font-size: 32px; font-weight: 700; color: #667eea;" id="modalPuntos">0</p>
+            <p>Valor aproximado: <span id="modalValor">$0 CR</span></p>
+            <p style="margin-top: 10px;" id="modalMeta">🎯 Próxima meta: Producto 1 (500 pts)</p>
             <div class="progress-bar">
-                <div class="progress-fill" id="barraProgreso" style="width: 45%;"></div>
+                <div class="progress-fill" id="barraProgreso" style="width: 0%;"></div>
             </div>
             <button class="modal-button modal-confirm" onclick="cerrarModal('modalDetalle')" style="width: 100%;">Cerrar</button>
         </div>
     </div>
 
-    <!-- MODAL: Confirmación - ACTUALIZADO -->
+    <!-- MODAL: Confirmación -->
     <div class="modal-overlay" id="modalConfirmacion">
         <div class="modal">
             <h3>✅ ¡Éxito!</h3>
             <p id="mensajeConfirmacion">Has canjeado tu recompensa</p>
             <button class="modal-button modal-confirm" onclick="cerrarModal('modalConfirmacion')" style="width: 100%;">Aceptar</button>
+        </div>
+    </div>
+
+    <!-- MODAL: Ayuda -->
+    <div class="modal-overlay" id="modalAyuda">
+        <div class="modal">
+            <h3>📱 ¿Necesitás ayuda?</h3>
+            <p style="text-align: left; margin-bottom: 15px;">
+                <strong>📞 Teléfono:</strong> 800-123-4567<br>
+                <strong>📧 Email:</strong> ayuda@migasolinera.com<br>
+                <strong>⏰ Horario:</strong> 24/7
+            </p>
+            <p style="text-align: left; margin-bottom: 20px;">
+                <strong>❓ Preguntas frecuentes:</strong><br>
+                • ¿Cómo escaneo un ticket?<br>
+                • ¿Cuándo vencen mis puntos?<br>
+                • ¿Cómo canjeo productos?
+            </p>
+            <button class="modal-button modal-confirm" onclick="cerrarModal('modalAyuda')" style="width: 100%;">Cerrar</button>
         </div>
     </div>
 
@@ -134,18 +205,173 @@
     <!-- Toast -->
     <div class="toast" id="toast">Mensaje</div>
 
+    <!-- Botón flotante de ayuda -->
+    <div class="help-button" onclick="mostrarAyuda()">?</div>
+
     <script>
-        // ===== ESTADO DE LA APLICACIÓN =====
-        let puntos = 12450;
+        // ===== BASE DE DATOS DE USUARIOS (SIMULADA) =====
+        const usuariosDB = {
+            '123456789': {
+                nombre: 'Juan Pérez',
+                cedula: '123456789',
+                puntos: 12450,
+                email: 'juan@email.com',
+                telefono: '8888-8888',
+                fechaRegistro: '2024-01-15',
+                avatar: '👤'
+            },
+            '987654321': {
+                nombre: 'María García',
+                cedula: '987654321',
+                puntos: 8200,
+                email: 'maria@email.com',
+                telefono: '8888-7777',
+                fechaRegistro: '2024-03-20',
+                avatar: '👩'
+            },
+            '555555555': {
+                nombre: 'Carlos López',
+                cedula: '555555555',
+                puntos: 25000,
+                email: 'carlos@email.com',
+                telefono: '8888-6666',
+                fechaRegistro: '2023-11-10',
+                avatar: '👨'
+            }
+        };
+
+        // ===== VARIABLES GLOBALES =====
+        let usuarioActual = null;
+        let puntos = 0;
         let moneda = "CR";
+        let temaOscuro = false;
         
-        let actividades = [
-            { icono: '📍', titulo: 'Compra en tienda X', fecha: 'Hoy, 10:42 AM', puntos: 120, tipo: 'positive' },
-            { icono: '🛒', titulo: 'Producto 1 canjeado', fecha: 'Ayer, 02:15 PM', puntos: -500, tipo: 'negative' },
-            { icono: '📚', titulo: 'Bonus semanal', fecha: '24 Oct, 09:00 AM', puntos: 50, tipo: 'positive' },
-            { icono: '⛽', titulo: 'Compra de combustible', fecha: '23 Oct, 06:30 PM', puntos: 85, tipo: 'positive' },
-            { icono: '🎁', titulo: 'Producto 2 canjeado', fecha: '20 Oct, 11:20 AM', puntos: -1000, tipo: 'negative' }
-        ];
+        // Actividades por usuario (simulado)
+        const actividadesDB = {
+            '123456789': [
+                { icono: '📍', titulo: 'Compra en tienda X', fecha: 'Hoy, 10:42 AM', puntos: 120, tipo: 'positive' },
+                { icono: '🛒', titulo: 'Producto 1 canjeado', fecha: 'Ayer, 02:15 PM', puntos: -500, tipo: 'negative' },
+                { icono: '📚', titulo: 'Bonus semanal', fecha: '24 Oct, 09:00 AM', puntos: 50, tipo: 'positive' }
+            ],
+            '987654321': [
+                { icono: '⛽', titulo: 'Compra de combustible', fecha: 'Hoy, 08:30 AM', puntos: 85, tipo: 'positive' },
+                { icono: '🎁', titulo: 'Producto 2 canjeado', fecha: 'Ayer, 06:15 PM', puntos: -1000, tipo: 'negative' },
+                { icono: '📍', titulo: 'Compra en tienda', fecha: '25 Oct, 11:20 AM', puntos: 45, tipo: 'positive' }
+            ],
+            '555555555': [
+                { icono: '⛽', titulo: 'Compra de combustible', fecha: 'Hoy, 07:15 AM', puntos: 150, tipo: 'positive' },
+                { icono: '⛽', titulo: 'Compra de combustible', fecha: 'Ayer, 08:45 PM', puntos: 200, tipo: 'positive' },
+                { icono: '🎁', titulo: 'Producto 3 canjeado', fecha: '23 Oct, 03:30 PM', puntos: -2500, tipo: 'negative' },
+                { icono: '📍', titulo: 'Compra en tienda', fecha: '22 Oct, 01:20 PM', puntos: 75, tipo: 'positive' }
+            ]
+        };
+
+        let actividades = [];
+
+        // ===== FUNCIONES DE LOGIN =====
+        function iniciarSesion() {
+            const cedula = document.getElementById('cedulaInput').value.trim();
+            const loginButton = document.getElementById('loginButton');
+            const loginText = document.getElementById('loginButtonText');
+            const errorDiv = document.getElementById('loginError');
+            
+            if (!cedula) {
+                errorDiv.textContent = 'Ingresá tu número de cédula';
+                errorDiv.classList.add('show');
+                return;
+            }
+
+            // Mostrar loader en botón
+            loginButton.disabled = true;
+            loginText.innerHTML = '<span class="button-loader"></span> Verificando...';
+            errorDiv.classList.remove('show');
+
+            // Simular verificación en servidor
+            setTimeout(() => {
+                if (usuariosDB[cedula]) {
+                    // Login exitoso
+                    usuarioActual = usuariosDB[cedula];
+                    puntos = usuarioActual.puntos;
+                    
+                    // Cargar actividades del usuario
+                    actividades = actividadesDB[cedula] || [];
+                    
+                    // Guardar sesión si "recordar" está marcado
+                    if (document.getElementById('rememberUser').checked) {
+                        localStorage.setItem('ultimaCedula', cedula);
+                    }
+                    
+                    // Ocultar login y mostrar app
+                    document.getElementById('loginScreen').style.opacity = '0';
+                    
+                    setTimeout(() => {
+                        document.getElementById('loginScreen').style.display = 'none';
+                        document.getElementById('welcomeMessage').textContent = `¡Bienvenido, ${usuarioActual.nombre}!`;
+                        document.getElementById('splashScreen').style.display = 'flex';
+                        
+                        setTimeout(() => {
+                            document.getElementById('splashScreen').style.opacity = '0';
+                            setTimeout(() => {
+                                document.getElementById('splashScreen').style.display = 'none';
+                                document.getElementById('appContent').style.display = 'block';
+                                cargarDatosUsuario();
+                                mostrarToast(`👋 ¡Hola, ${usuarioActual.nombre}!`, 'success', 3000);
+                            }, 500);
+                        }, 2000);
+                    }, 500);
+                    
+                } else {
+                    // Login fallido
+                    errorDiv.textContent = 'Cédula no encontrada';
+                    errorDiv.classList.add('show');
+                    loginButton.disabled = false;
+                    loginText.textContent = 'Ingresar';
+                }
+            }, 1500);
+        }
+
+        function cargarDatosUsuario() {
+            // Actualizar puntos
+            actualizarPuntos();
+            
+            // Actualizar actividades
+            renderizarActividades();
+            
+            // Actualizar avatar si es diferente
+            if (usuarioActual.avatar) {
+                document.getElementById('profileIcon').textContent = usuarioActual.avatar;
+            }
+        }
+
+        function cerrarSesion() {
+            mostrarLoader();
+            
+            setTimeout(() => {
+                ocultarLoader();
+                
+                // Resetear variables
+                usuarioActual = null;
+                puntos = 0;
+                
+                // Ocultar app y mostrar login
+                document.getElementById('appContent').style.display = 'none';
+                document.getElementById('loginScreen').style.display = 'flex';
+                document.getElementById('loginScreen').style.opacity = '1';
+                
+                // Limpiar campo de cédula
+                document.getElementById('cedulaInput').value = '';
+                
+                // Resetear botón de login
+                document.getElementById('loginButton').disabled = false;
+                document.getElementById('loginButtonText').textContent = 'Ingresar';
+                
+                mostrarToast('👋 Sesión cerrada', 'info');
+            }, 500);
+        }
+
+        function mostrarAyudaLogin() {
+            abrirModal('modalAyuda');
+        }
 
         // ===== FUNCIONES DE UTILIDAD =====
         function mostrarToast(mensaje, tipo = 'info', duracion = 3000) {
@@ -180,15 +406,12 @@
             const valorUSD = (puntos / 1000 * 5).toFixed(2);
             document.getElementById('valorPuntos').textContent = `≈ $${valorUSD} ${moneda}`;
             
-            // Actualizar modal de detalle
             document.getElementById('modalPuntos').textContent = puntos.toLocaleString();
             document.getElementById('modalValor').textContent = `≈ $${(puntos / 1000 * 5).toFixed(2)} ${moneda}`;
             
-            // Calcular progreso hacia próxima meta (Producto 1: 500 pts)
-            const progreso = Math.min((puntos / 500) * 100, 100);
-            document.getElementById('barraProgreso').style.width = progreso + '%';
+            const progresoMeta = Math.min((puntos / 500) * 100, 100);
+            document.getElementById('barraProgreso').style.width = progresoMeta + '%';
             
-            // Deshabilitar opciones que no alcancen
             document.getElementById('itemProducto1').classList.toggle('disabled', puntos < 500);
             document.getElementById('itemProducto2').classList.toggle('disabled', puntos < 1000);
             document.getElementById('itemProducto3').classList.toggle('disabled', puntos < 2500);
@@ -237,7 +460,14 @@
 
         // ===== FUNCIONES PRINCIPALES =====
         function mostrarPerfil() {
-            mostrarToast(`👤 Cliente: Juan Pérez · ${puntos} puntos disponibles`, 'info');
+            if (!usuarioActual) return;
+            
+            mostrarToast(`
+                👤 ${usuarioActual.nombre}
+                📧 ${usuarioActual.email}
+                📞 ${usuarioActual.telefono}
+                ⭐ Desde: ${usuarioActual.fechaRegistro}
+            `, 'info', 6000);
         }
 
         function mostrarDetallePuntos() {
@@ -259,11 +489,9 @@
             cerrarModal('modalScan');
             mostrarLoader();
 
-            // Simular procesamiento
             setTimeout(() => {
                 ocultarLoader();
                 
-                // Simular compra aleatoria
                 const monto = Math.floor(Math.random() * 60) + 20;
                 const litros = Math.floor(Math.random() * 40) + 10;
                 
@@ -278,6 +506,7 @@
                 puntosGanados = puntosGanados * multi;
                 
                 puntos += puntosGanados;
+                usuarioActual.puntos = puntos;
                 actualizarPuntos();
                 
                 let mensajeMulti = '';
@@ -290,6 +519,8 @@
         }
 
         function canjearProducto(producto, costo) {
+            if (!usuarioActual) return;
+            
             if (puntos < costo) {
                 mostrarToast(`❌ Necesitas ${costo - puntos} puntos más`, 'error');
                 return;
@@ -310,6 +541,7 @@
             };
 
             puntos -= costo;
+            usuarioActual.puntos = puntos;
             actualizarPuntos();
             
             agregarActividad(`${iconos[producto]} ${nombres[producto]} canjeado`, -costo, iconos[producto]);
@@ -364,6 +596,8 @@
         }
 
         function simularCompra() {
+            if (!usuarioActual) return;
+            
             mostrarLoader();
             
             setTimeout(() => {
@@ -376,6 +610,7 @@
                 if (litros >= 40) puntosGanados += 5;
                 
                 puntos += puntosGanados;
+                usuarioActual.puntos = puntos;
                 actualizarPuntos();
                 
                 agregarActividad(`⛽ Compra simulada $${monto} (${litros}L)`, puntosGanados, '⛽');
@@ -384,17 +619,42 @@
             }, 1000);
         }
 
+        function mostrarAyuda() {
+            abrirModal('modalAyuda');
+        }
+
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+            const btn = document.querySelector('.theme-toggle');
+            temaOscuro = !temaOscuro;
+            btn.textContent = temaOscuro ? '☀️' : '🌙';
+            localStorage.setItem('theme', temaOscuro ? 'dark' : 'light');
+        }
+
         // ===== INICIALIZACIÓN =====
         document.addEventListener('DOMContentLoaded', () => {
-            actualizarPuntos();
-            renderizarActividades();
+            // Cargar tema guardado
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                document.body.classList.add('dark-mode');
+                document.querySelector('.theme-toggle').textContent = '☀️';
+                temaOscuro = true;
+            }
             
+            // Verificar si hay cédula recordada
+            const ultimaCedula = localStorage.getItem('ultimaCedula');
+            if (ultimaCedula) {
+                document.getElementById('cedulaInput').value = ultimaCedula;
+            }
+            
+            // Event listeners
             document.addEventListener('keydown', (e) => {
                 if (e.key === 'Escape') {
                     cerrarModal('modalScan');
                     cerrarModal('modalCanjeo');
                     cerrarModal('modalDetalle');
                     cerrarModal('modalConfirmacion');
+                    cerrarModal('modalAyuda');
                 }
             });
 
@@ -404,7 +664,12 @@
                 }
             });
 
-            mostrarToast('🚀 App lista! Escanea un ticket o prueba con "Simular compra"', 'info', 4000);
+            // Permitir login con Enter
+            document.getElementById('cedulaInput').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    iniciarSesion();
+                }
+            });
         });
     </script>
 </body>
